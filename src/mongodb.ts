@@ -12,17 +12,52 @@ MongoClient.connect(
     }
 
     const db = client.db(dbName);
-    db.collection('users').insertOne(
-      {
-        name: 'Andrew',
-        age: 29,
-      },
+    const users = db.collection('users');
+
+    // insert one user
+    // users.insertOne(
+    //   {
+    //     name: 'Andrew',
+    //     age: 29,
+    //   },
+    //   (dbError, dbResult) => {
+    //     if (dbError) {
+    //       return console.error('error inserting document:', dbError);
+    //     }
+
+    //     console.log(dbResult.ops);
+    //   }
+    // );
+
+    // insert two users
+    // users.insertMany(
+    //   [
+    //     { name: 'Jack', age: 30 },
+    //     { name: 'Jill', age: 28 },
+    //   ],
+    //   (dbError, dbResult) => {
+    //     if (dbError) {
+    //       return console.error('error creating records:', dbError);
+    //     }
+
+    //     console.log('created users:', dbResult.ops);
+    //   }
+    // );
+
+    // insert three tasks
+    const tasks = db.collection('tasks');
+    tasks.insertMany(
+      [
+        { description: 'learn nodejs', completed: false },
+        { description: 'cook dinner', completed: true },
+        { description: 'sleep', completed: false },
+      ],
       (dbError, dbResult) => {
         if (dbError) {
-          return console.error('error inserting document:', dbError);
+          return console.error('error creating tasks:', dbError);
         }
 
-        console.log(dbResult.ops);
+        console.log('created tasks:', dbResult.ops);
       }
     );
   }
