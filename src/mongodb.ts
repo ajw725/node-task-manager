@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectID } from 'mongodb';
 
 const connectionUrl = 'mongodb://127.0.0.1:27017';
 const dbName = 'task-manager';
@@ -13,52 +13,43 @@ MongoClient.connect(
 
     const db = client.db(dbName);
     const users = db.collection('users');
-
-    // insert one user
-    // users.insertOne(
-    //   {
-    //     name: 'Andrew',
-    //     age: 29,
-    //   },
-    //   (dbError, dbResult) => {
-    //     if (dbError) {
-    //       return console.error('error inserting document:', dbError);
+    const userId = '5fac9cca64e5a57a53fd1f61';
+    // users
+    //   .updateOne(
+    //     { _id: new ObjectID(userId) },
+    //     {
+    //       // $set: {
+    //       //   name: 'NotAndrew',
+    //       // },
+    //       $inc: {
+    //         age: 1
+    //       }
     //     }
+    //   )
+    //   .then((result) => {
+    //     const updatedCt = result.modifiedCount;
+    //     console.log(`updated ${updatedCt} users`);
+    //   })
+    //   .catch((err) => {
+    //     console.error('error updating user:', err);
+    //   });
 
-    //     console.log(dbResult.ops);
-    //   }
-    // );
+    // users.deleteOne(
+    //   { _id: new ObjectID(userId) }
+    // ).then(res => {
+    //   console.log(`deleted ${res.deletedCount} records`);
+    // }).catch(err => {
+    //   console.error('error deleting user', err);
+    // })
 
-    // insert two users
-    // users.insertMany(
-    //   [
-    //     { name: 'Jack', age: 30 },
-    //     { name: 'Jill', age: 28 },
-    //   ],
-    //   (dbError, dbResult) => {
-    //     if (dbError) {
-    //       return console.error('error creating records:', dbError);
-    //     }
-
-    //     console.log('created users:', dbResult.ops);
-    //   }
-    // );
-
-    // insert three tasks
     const tasks = db.collection('tasks');
-    tasks.insertMany(
-      [
-        { description: 'learn nodejs', completed: false },
-        { description: 'cook dinner', completed: true },
-        { description: 'sleep', completed: false },
-      ],
-      (dbError, dbResult) => {
-        if (dbError) {
-          return console.error('error creating tasks:', dbError);
+    tasks.updateMany(
+      {},
+      { 
+        $set: {
+          completed: true
         }
-
-        console.log('created tasks:', dbResult.ops);
       }
-    );
+    )
   }
 );
