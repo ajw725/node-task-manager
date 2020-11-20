@@ -29,11 +29,13 @@ mongodb_1.MongoClient.connect(connectionUrl, { useNewUrlParser: true, useUnified
     //   .catch((err) => {
     //     console.error('error updating user:', err);
     //   });
-    users.deleteOne({ _id: new mongodb_1.ObjectID(userId) }).then(res => {
-        console.log('delete result', res);
-    }).catch(err => {
-        console.error('error deleting user', err);
-    });
+    // users.deleteOne(
+    //   { _id: new ObjectID(userId) }
+    // ).then(res => {
+    //   console.log(`deleted ${res.deletedCount} records`);
+    // }).catch(err => {
+    //   console.error('error deleting user', err);
+    // })
     const tasks = db.collection('tasks');
     tasks.updateMany({}, {
         $set: {
