@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 require('./db/mongoose');
 const user_1 = require("./models/user");
+const task_1 = require("./models/task");
 const app = express_1.default();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
@@ -16,6 +17,17 @@ app.post('/users', (req, res) => {
         .save()
         .then(() => {
         res.status(201).send(user);
+    })
+        .catch((err) => {
+        res.status(400).send({ error: err });
+    });
+});
+app.post('/tasks', (req, res) => {
+    const task = new task_1.Task(req.body);
+    task
+        .save()
+        .then(() => {
+        res.status(201).send(task);
     })
         .catch((err) => {
         res.status(400).send({ error: err });
