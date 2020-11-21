@@ -20,6 +20,24 @@ app.post('/users', (req, res) => {
     });
 });
 
+app.get('/users', (_req, res) => {
+  User.find()
+    .then((users) => res.status(200).send(users))
+    .catch((err) => res.status(500).send({ error: err }));
+});
+
+app.get('/users/:id', (req, res) => {
+  User.findById(req.params.id)
+    .then((user) => {
+      if (user) {
+        res.status(200).send(user);
+      } else {
+        res.status(404).send({ error: 'User not found' });
+      }
+    })
+    .catch((err) => res.status(500).send({ error: err }));
+});
+
 app.post('/tasks', (req, res) => {
   const task = new Task(req.body);
   task
