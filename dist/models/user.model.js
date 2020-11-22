@@ -4,10 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
-const mongoose_1 = __importDefault(require("mongoose"));
+const mongoose_1 = require("mongoose");
 const validator_1 = __importDefault(require("validator"));
 const bcrypt_1 = require("bcrypt");
-const userSchema = new mongoose_1.default.Schema({
+const jsonwebtoken_1 = require("jsonwebtoken");
+const UserSchema = new mongoose_1.Schema({
     name: {
         type: String,
         required: [true, 'Please provide a name'],
@@ -16,6 +17,7 @@ const userSchema = new mongoose_1.default.Schema({
     email: {
         type: String,
         required: true,
+        unique: true,
         trim: true,
         lowercase: true,
         validate: [
@@ -32,7 +34,6 @@ const userSchema = new mongoose_1.default.Schema({
             (val) => !val.toLowerCase().includes('password'),
             'Password cannot contain the string "password"',
         ],
-        select: false,
     },
     salt: {
         type: String,
@@ -44,8 +45,21 @@ const userSchema = new mongoose_1.default.Schema({
         validate: [(val) => val >= 0, 'Age cannot be negative'],
     },
 });
+UserSchema.methods.generateAuthToken = function () {
+    const user = this;
+    const payload = { _id: user._id.toString() };
+    const secret = process.env.JWT_SECRET || '';
+    return jsonwebtoken_1.sign(payload, secret);
+};
+UserSchema.statics.findByCredentials = async (email, password) => {
+    const user = await exports.User.findOne({ email: email });
+    if (!user)
+        return null;
+    const passwordMatch = await bcrypt_1.compare(password, user.password);
+    return passwordMatch ? user : null;
+};
 // CANNOT use an arrow function, because we need to bind "this"
-userSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function (next) {
     const user = this;
     if (user.isModified('password')) {
         const rawPassword = user.get('password');
@@ -59,4 +73,4 @@ userSchema.pre('save', async function (next) {
     }
     next();
 });
-exports.User = mongoose_1.default.model('User', userSchema);
+exports.User = mongoose_1.model('User', UserSchema);

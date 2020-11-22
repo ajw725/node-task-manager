@@ -1,8 +1,9 @@
-import Mongoose from 'mongoose';
+import { Schema, Document, model, Model } from 'mongoose';
 import validator from 'validator';
-import { hash, genSalt } from 'bcrypt';
+import { hash, genSalt, compare } from 'bcrypt';
+import { sign as signToken } from 'jsonwebtoken';
 
-const userSchema = new Mongoose.Schema({
+const UserSchema: Schema = new Schema({
   name: {
     type: String,
     required: [true, 'Please provide a name'],
@@ -11,6 +12,7 @@ const userSchema = new Mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
     trim: true,
     lowercase: true,
     validate: [
@@ -27,7 +29,6 @@ const userSchema = new Mongoose.Schema({
       (val: string) => !val.toLowerCase().includes('password'),
       'Password cannot contain the string "password"',
     ],
-    select: false,
   },
   salt: {
     type: String,
@@ -40,8 +41,43 @@ const userSchema = new Mongoose.Schema({
   },
 });
 
+UserSchema.methods.generateAuthToken = function () {
+  const user = this;
+  const payload = { _id: user._id.toString() };
+  const secret = process.env.JWT_SECRET || '';
+  return signToken(payload, secret);
+};
+
+UserSchema.statics.findByCredentials = async (
+  email: string,
+  password: string
+) => {
+  const user = await User.findOne({ email: email });
+  if (!user) return null;
+
+  const passwordMatch = await compare(password, user.password);
+
+  return passwordMatch ? user : null;
+};
+
+interface IUserDocument extends Document {
+  name: string;
+  email: string;
+  password: string;
+  salt: string;
+  age?: number;
+
+  generateAuthToken(): string;
+}
+
+export type UserField = 'name' | 'email' | 'password' | 'age';
+
+interface IUserModel extends Model<IUserDocument> {
+  findByCredentials(email: string, password: string): Promise<IUserDocument>;
+}
+
 // CANNOT use an arrow function, because we need to bind "this"
-userSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function (next) {
   const user = this;
 
   if (user.isModified('password')) {
@@ -58,4 +94,4 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-export const User = Mongoose.model('User', userSchema);
+export const User = model<IUserDocument, IUserModel>('User', UserSchema);

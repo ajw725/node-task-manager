@@ -1,7 +1,10 @@
 import Express from 'express';
 require('./db/mongoose');
+import dotenv from 'dotenv';
 import { UserRouter } from './routers/user.router';
 import { TaskRouter } from './routers/task.router';
+
+dotenv.config();
 
 const app = Express();
 app.use(Express.json());

@@ -13,6 +13,23 @@ UserRouter.post('/users', async (req, res) => {
   }
 });
 
+UserRouter.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findByCredentials(email, password);
+
+    if (user) {
+      const token = user.generateAuthToken();
+      res.status(200).send({ user, token });
+    } else {
+      res.status(401).send({ error: 'Invalid credentials.' });
+    }
+  } catch (err) {
+    console.error('login error:', err);
+    res.status(500).send({ error: err });
+  }
+});
+
 UserRouter.get('/users', async (_req, res) => {
   try {
     const users = await User.find();
