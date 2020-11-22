@@ -9,6 +9,7 @@ const mongoose_1 = require("mongoose");
 const validator_1 = __importDefault(require("validator"));
 const bcrypt_1 = require("bcrypt");
 const jsonwebtoken_1 = require("jsonwebtoken");
+const task_model_1 = require("./task.model");
 const UserSchema = new mongoose_1.Schema({
     name: {
         type: String,
@@ -80,6 +81,7 @@ UserSchema.statics.findByCredentials = async (email, password) => {
     const passwordMatch = await bcrypt_1.compare(password, user.password);
     return passwordMatch ? user : null;
 };
+// hash password before save
 // CANNOT use an arrow function, because we need to bind "this"
 UserSchema.pre('save', async function (next) {
     const user = this;
@@ -93,6 +95,12 @@ UserSchema.pre('save', async function (next) {
         const hashedPassword = await bcrypt_1.hash(rawPassword, salt);
         user.set('password', hashedPassword);
     }
+    next();
+});
+// delete tasks when user is removed
+UserSchema.pre('remove', async function (next) {
+    const user = this;
+    await task_model_1.Task.deleteMany({ user: user._id });
     next();
 });
 exports.User = mongoose_1.model('User', UserSchema);

@@ -3,7 +3,7 @@ import { Schema, Document, model, Model } from 'mongoose';
 import validator from 'validator';
 import { hash, genSalt, compare } from 'bcrypt';
 import { sign as signToken } from 'jsonwebtoken';
-import { ITaskDocument } from './task.model';
+import { ITaskDocument, Task } from './task.model';
 
 const UserSchema: Schema = new Schema({
   name: {
@@ -118,6 +118,7 @@ interface IUserModel extends Model<IUserDocument> {
   findByCredentials(email: string, password: string): Promise<IUserDocument>;
 }
 
+// hash password before save
 // CANNOT use an arrow function, because we need to bind "this"
 UserSchema.pre('save', async function (next) {
   const user = this;
@@ -132,6 +133,14 @@ UserSchema.pre('save', async function (next) {
     const hashedPassword = await hash(rawPassword, salt);
     user.set('password', hashedPassword);
   }
+
+  next();
+});
+
+// delete tasks when user is removed
+UserSchema.pre('remove', async function (next) {
+  const user = this;
+  await Task.deleteMany({ user: user._id });
 
   next();
 });
