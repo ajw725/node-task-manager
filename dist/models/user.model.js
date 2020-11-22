@@ -53,13 +53,15 @@ const UserSchema = new mongoose_1.Schema({
         },
     ],
 });
-UserSchema.methods.generateAuthToken = async function () {
+UserSchema.methods.generateAuthToken = async function (save = true) {
     const user = this;
     const payload = { _id: user._id.toString() };
     const secret = process.env.JWT_SECRET || '';
     const token = jsonwebtoken_1.sign(payload, secret);
     user.tokens = [...user.tokens, { token }];
-    await user.save();
+    if (save) {
+        await user.save();
+    }
     return token;
 };
 UserSchema.statics.findByCredentials = async (email, password) => {

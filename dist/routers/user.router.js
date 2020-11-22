@@ -7,8 +7,9 @@ exports.UserRouter = express_1.Router();
 exports.UserRouter.post('/users', async (req, res) => {
     const user = new user_model_1.User(req.body);
     try {
+        const token = await user.generateAuthToken(false);
         await user.save();
-        res.status(201).send(user);
+        res.status(201).send({ user, token });
     }
     catch (err) {
         res.status(400).send({ error: err });

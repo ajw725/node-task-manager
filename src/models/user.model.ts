@@ -49,14 +49,16 @@ const UserSchema: Schema = new Schema({
   ],
 });
 
-UserSchema.methods.generateAuthToken = async function () {
+UserSchema.methods.generateAuthToken = async function (save = true) {
   const user = this;
   const payload = { _id: user._id.toString() };
   const secret = process.env.JWT_SECRET || '';
   const token = signToken(payload, secret);
 
   user.tokens = [...user.tokens, { token }];
-  await user.save();
+  if (save) {
+    await user.save();
+  }
 
   return token;
 };
@@ -85,7 +87,7 @@ interface IUserDocument extends Document {
   age?: number;
   tokens: UserToken[];
 
-  generateAuthToken(): string;
+  generateAuthToken(save?: boolean): Promise<String>;
 }
 
 export type UserField = 'name' | 'email' | 'password' | 'age';
