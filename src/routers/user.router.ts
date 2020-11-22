@@ -31,6 +31,20 @@ UserRouter.post('/login', async (req, res) => {
   }
 });
 
+UserRouter.delete('/logout', async (req, res) => {
+  try {
+    const thisToken = req.token;
+    const user = req.user;
+    user.tokens = user.tokens.filter((t) => t.token !== thisToken);
+    await user.save();
+
+    res.status(200).send({ message: 'Logged out successfully.' });
+  } catch (err) {
+    console.error('logout error:', err);
+    res.status(500).send({ error: err });
+  }
+});
+
 UserRouter.get('/users/me', async (req, res) => {
   res.status(200).send(req.user);
 });

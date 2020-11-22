@@ -29,6 +29,7 @@ exports.authorizer = async (req, res, next) => {
         const token = authHeader.replace('Bearer ', '');
         const user = await validateToken(token);
         req.user = user;
+        req.token = token;
     }
     catch (err) {
         return res.status(401).send({ error: 'Unauthorized' });
