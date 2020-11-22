@@ -44,12 +44,23 @@ const UserSchema = new mongoose_1.Schema({
         default: 0,
         validate: [(val) => val >= 0, 'Age cannot be negative'],
     },
+    tokens: [
+        {
+            token: {
+                type: String,
+                required: true,
+            },
+        },
+    ],
 });
-UserSchema.methods.generateAuthToken = function () {
+UserSchema.methods.generateAuthToken = async function () {
     const user = this;
     const payload = { _id: user._id.toString() };
     const secret = process.env.JWT_SECRET || '';
-    return jsonwebtoken_1.sign(payload, secret);
+    const token = jsonwebtoken_1.sign(payload, secret);
+    user.tokens = [...user.tokens, { token }];
+    await user.save();
+    return token;
 };
 UserSchema.statics.findByCredentials = async (email, password) => {
     const user = await exports.User.findOne({ email: email });

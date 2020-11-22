@@ -39,13 +39,26 @@ const UserSchema: Schema = new Schema({
     default: 0,
     validate: [(val: number) => val >= 0, 'Age cannot be negative'],
   },
+  tokens: [
+    {
+      token: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
 });
 
-UserSchema.methods.generateAuthToken = function () {
+UserSchema.methods.generateAuthToken = async function () {
   const user = this;
   const payload = { _id: user._id.toString() };
   const secret = process.env.JWT_SECRET || '';
-  return signToken(payload, secret);
+  const token = signToken(payload, secret);
+
+  user.tokens = [...user.tokens, { token }];
+  await user.save();
+
+  return token;
 };
 
 UserSchema.statics.findByCredentials = async (
@@ -60,12 +73,17 @@ UserSchema.statics.findByCredentials = async (
   return passwordMatch ? user : null;
 };
 
+interface UserToken {
+  token: string;
+}
+
 interface IUserDocument extends Document {
   name: string;
   email: string;
   password: string;
   salt: string;
   age?: number;
+  tokens: UserToken[];
 
   generateAuthToken(): string;
 }

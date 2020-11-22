@@ -19,7 +19,7 @@ exports.UserRouter.post('/login', async (req, res) => {
         const { email, password } = req.body;
         const user = await user_model_1.User.findByCredentials(email, password);
         if (user) {
-            const token = user.generateAuthToken();
+            const token = await user.generateAuthToken();
             res.status(200).send({ user, token });
         }
         else {

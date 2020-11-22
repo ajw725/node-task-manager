@@ -19,7 +19,7 @@ UserRouter.post('/login', async (req, res) => {
     const user = await User.findByCredentials(email, password);
 
     if (user) {
-      const token = user.generateAuthToken();
+      const token = await user.generateAuthToken();
       res.status(200).send({ user, token });
     } else {
       res.status(401).send({ error: 'Invalid credentials.' });
