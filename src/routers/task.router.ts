@@ -19,7 +19,11 @@ TaskRouter.post('/tasks', async (req, res) => {
 
 TaskRouter.get('/tasks', async (req, res) => {
   try {
-    const tasks = await Task.find({ user: req.user._id });
+    const findOpts: any = { user: req.user._id };
+    if (req.query.completed !== undefined) {
+      findOpts.completed = req.query.completed;
+    }
+    const tasks = await Task.find(findOpts);
     res.status(200).send(tasks);
   } catch (err) {
     res.status(500).send(err);

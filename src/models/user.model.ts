@@ -5,51 +5,56 @@ import { hash, genSalt, compare } from 'bcrypt';
 import { sign as signToken } from 'jsonwebtoken';
 import { ITaskDocument, Task } from './task.model';
 
-const UserSchema: Schema = new Schema({
-  name: {
-    type: String,
-    required: [true, 'Please provide a name'],
-    trim: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true,
-    validate: [
-      (val: string) => validator.isEmail(val),
-      'Invalid email address',
-    ],
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 8,
-    trim: true,
-    validate: [
-      (val: string) => !val.toLowerCase().includes('password'),
-      'Password cannot contain the string "password"',
-    ],
-  },
-  salt: {
-    type: String,
-    select: false,
-  },
-  age: {
-    type: Number,
-    default: 0,
-    validate: [(val: number) => val >= 0, 'Age cannot be negative'],
-  },
-  tokens: [
-    {
-      token: {
-        type: String,
-        required: true,
-      },
+const UserSchema: Schema = new Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Please provide a name'],
+      trim: true,
     },
-  ],
-});
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      validate: [
+        (val: string) => validator.isEmail(val),
+        'Invalid email address',
+      ],
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 8,
+      trim: true,
+      validate: [
+        (val: string) => !val.toLowerCase().includes('password'),
+        'Password cannot contain the string "password"',
+      ],
+    },
+    salt: {
+      type: String,
+      select: false,
+    },
+    age: {
+      type: Number,
+      default: 0,
+      validate: [(val: number) => val >= 0, 'Age cannot be negative'],
+    },
+    tokens: [
+      {
+        token: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
 
 export interface UserTokenPayload {
   _id: string;
@@ -60,6 +65,8 @@ export interface PublicProfile {
   name: string;
   email: string;
   age?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 UserSchema.virtual('tasks', {
@@ -83,7 +90,15 @@ UserSchema.methods.generateAuthToken = async function (save = true) {
 };
 
 UserSchema.methods.toJSON = function (): PublicProfile {
-  return _.pick(this.toObject(), '_id', 'name', 'email', 'age');
+  return _.pick(
+    this.toObject(),
+    '_id',
+    'name',
+    'email',
+    'age',
+    'createdAt',
+    'updatedAt'
+  );
 };
 
 UserSchema.statics.findByCredentials = async (
@@ -110,6 +125,8 @@ export interface IUserDocument extends Document {
   age?: number;
   tokens: UserToken[];
   tasks: ITaskDocument[];
+  createdAt: string;
+  updatedAt: string;
 
   generateAuthToken(save?: boolean): Promise<String>;
 }

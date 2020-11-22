@@ -19,7 +19,11 @@ exports.TaskRouter.post('/tasks', async (req, res) => {
 });
 exports.TaskRouter.get('/tasks', async (req, res) => {
     try {
-        const tasks = await task_model_1.Task.find({ user: req.user._id });
+        const findOpts = { user: req.user._id };
+        if (req.query.completed !== undefined) {
+            findOpts.completed = req.query.completed;
+        }
+        const tasks = await task_model_1.Task.find(findOpts);
         res.status(200).send(tasks);
     }
     catch (err) {

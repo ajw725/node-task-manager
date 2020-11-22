@@ -54,6 +54,8 @@ const UserSchema = new mongoose_1.Schema({
             },
         },
     ],
+}, {
+    timestamps: true,
 });
 UserSchema.virtual('tasks', {
     ref: 'Task',
@@ -72,7 +74,7 @@ UserSchema.methods.generateAuthToken = async function (save = true) {
     return token;
 };
 UserSchema.methods.toJSON = function () {
-    return lodash_1.default.pick(this.toObject(), '_id', 'name', 'email', 'age');
+    return lodash_1.default.pick(this.toObject(), '_id', 'name', 'email', 'age', 'createdAt', 'updatedAt');
 };
 UserSchema.statics.findByCredentials = async (email, password) => {
     const user = await exports.User.findOne({ email: email });
