@@ -51,7 +51,7 @@ UserRouter.delete('/logout', async (req, res) => {
   }
 });
 
-UserRouter.get('/users/me', async (req, res) => {
+UserRouter.get('/users/me', (req, res) => {
   res.status(200).send(req.user);
 });
 

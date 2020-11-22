@@ -3,6 +3,7 @@ import { Schema, Document, model, Model } from 'mongoose';
 import validator from 'validator';
 import { hash, genSalt, compare } from 'bcrypt';
 import { sign as signToken } from 'jsonwebtoken';
+import { ITaskDocument } from './task.model';
 
 const UserSchema: Schema = new Schema({
   name: {
@@ -61,6 +62,12 @@ export interface PublicProfile {
   age?: number;
 }
 
+UserSchema.virtual('tasks', {
+  ref: 'Task',
+  localField: '_id',
+  foreignField: 'user',
+});
+
 UserSchema.methods.generateAuthToken = async function (save = true) {
   const user = this;
   const payload: UserTokenPayload = { _id: user._id.toString() };
@@ -75,6 +82,10 @@ UserSchema.methods.generateAuthToken = async function (save = true) {
   return token;
 };
 
+UserSchema.methods.toJSON = function (): PublicProfile {
+  return _.pick(this.toObject(), '_id', 'name', 'email', 'age');
+};
+
 UserSchema.statics.findByCredentials = async (
   email: string,
   password: string
@@ -85,10 +96,6 @@ UserSchema.statics.findByCredentials = async (
   const passwordMatch = await compare(password, user.password);
 
   return passwordMatch ? user : null;
-};
-
-UserSchema.methods.toJSON = function (): PublicProfile {
-  return _.pick(this.toObject(), '_id', 'name', 'email', 'age');
 };
 
 interface UserToken {
@@ -102,6 +109,7 @@ export interface IUserDocument extends Document {
   salt: string;
   age?: number;
   tokens: UserToken[];
+  tasks: ITaskDocument[];
 
   generateAuthToken(save?: boolean): Promise<String>;
 }

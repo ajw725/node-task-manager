@@ -6,7 +6,7 @@ export const TaskRouter = Router();
 TaskRouter.post('/tasks', async (req, res) => {
   const task = new Task({
     ...req.body,
-    userId: req.user._id,
+    user: req.user._id,
   });
 
   try {
@@ -17,9 +17,9 @@ TaskRouter.post('/tasks', async (req, res) => {
   }
 });
 
-TaskRouter.get('/tasks', async (_req, res) => {
+TaskRouter.get('/tasks', async (req, res) => {
   try {
-    const tasks = await Task.find();
+    const tasks = await Task.find({ user: req.user._id });
     res.status(200).send(tasks);
   } catch (err) {
     res.status(500).send(err);
@@ -28,7 +28,7 @@ TaskRouter.get('/tasks', async (_req, res) => {
 
 TaskRouter.get('/tasks/:id', async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({ _id: req.params.id, user: req.user._id });
     if (task) {
       res.status(200).send(task);
     } else {
@@ -56,7 +56,10 @@ TaskRouter.patch('/tasks/:id', async (req, res) => {
   }
 
   try {
-    const task: any = await Task.findById(req.params.id);
+    const task: any = await Task.findOne({
+      _id: req.params.id,
+      user: req.params._id,
+    });
     if (task) {
       givenFields.forEach((field) => {
         task[field] = req.body[field];
@@ -76,7 +79,11 @@ TaskRouter.patch('/tasks/:id', async (req, res) => {
 
 TaskRouter.delete('/tasks/:id', async (req, res) => {
   try {
-    const task = await Task.findByIdAndDelete(req.params.id);
+    const task = await Task.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
     if (task) {
       res.status(200).send({ message: 'Task deleted.' });
     } else {

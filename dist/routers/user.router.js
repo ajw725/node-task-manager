@@ -49,7 +49,7 @@ exports.UserRouter.delete('/logout', async (req, res) => {
         res.status(500).send({ error: err });
     }
 });
-exports.UserRouter.get('/users/me', async (req, res) => {
+exports.UserRouter.get('/users/me', (req, res) => {
     res.status(200).send(req.user);
 });
 exports.UserRouter.get('/users/me', async (req, res) => {

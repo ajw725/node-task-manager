@@ -7,7 +7,7 @@ exports.TaskRouter = express_1.Router();
 exports.TaskRouter.post('/tasks', async (req, res) => {
     const task = new task_model_1.Task({
         ...req.body,
-        userId: req.user._id,
+        user: req.user._id,
     });
     try {
         await task.save();
@@ -17,9 +17,9 @@ exports.TaskRouter.post('/tasks', async (req, res) => {
         res.status(400).send({ error: err });
     }
 });
-exports.TaskRouter.get('/tasks', async (_req, res) => {
+exports.TaskRouter.get('/tasks', async (req, res) => {
     try {
-        const tasks = await task_model_1.Task.find();
+        const tasks = await task_model_1.Task.find({ user: req.user._id });
         res.status(200).send(tasks);
     }
     catch (err) {
@@ -28,7 +28,7 @@ exports.TaskRouter.get('/tasks', async (_req, res) => {
 });
 exports.TaskRouter.get('/tasks/:id', async (req, res) => {
     try {
-        const task = await task_model_1.Task.findById(req.params.id);
+        const task = await task_model_1.Task.findOne({ _id: req.params.id, user: req.user._id });
         if (task) {
             res.status(200).send(task);
         }
@@ -55,7 +55,10 @@ exports.TaskRouter.patch('/tasks/:id', async (req, res) => {
         res.status(400).send({ error: 'Invalid field provided for update' });
     }
     try {
-        const task = await task_model_1.Task.findById(req.params.id);
+        const task = await task_model_1.Task.findOne({
+            _id: req.params.id,
+            user: req.params._id,
+        });
         if (task) {
             givenFields.forEach((field) => {
                 task[field] = req.body[field];
@@ -75,7 +78,10 @@ exports.TaskRouter.patch('/tasks/:id', async (req, res) => {
 });
 exports.TaskRouter.delete('/tasks/:id', async (req, res) => {
     try {
-        const task = await task_model_1.Task.findByIdAndDelete(req.params.id);
+        const task = await task_model_1.Task.findOneAndDelete({
+            _id: req.params.id,
+            user: req.user._id,
+        });
         if (task) {
             res.status(200).send({ message: 'Task deleted.' });
         }

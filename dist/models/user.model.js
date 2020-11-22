@@ -54,6 +54,11 @@ const UserSchema = new mongoose_1.Schema({
         },
     ],
 });
+UserSchema.virtual('tasks', {
+    ref: 'Task',
+    localField: '_id',
+    foreignField: 'user',
+});
 UserSchema.methods.generateAuthToken = async function (save = true) {
     const user = this;
     const payload = { _id: user._id.toString() };
@@ -65,15 +70,15 @@ UserSchema.methods.generateAuthToken = async function (save = true) {
     }
     return token;
 };
+UserSchema.methods.toJSON = function () {
+    return lodash_1.default.pick(this.toObject(), '_id', 'name', 'email', 'age');
+};
 UserSchema.statics.findByCredentials = async (email, password) => {
     const user = await exports.User.findOne({ email: email });
     if (!user)
         return null;
     const passwordMatch = await bcrypt_1.compare(password, user.password);
     return passwordMatch ? user : null;
-};
-UserSchema.methods.toJSON = function () {
-    return lodash_1.default.pick(this.toObject(), '_id', 'name', 'email', 'age');
 };
 // CANNOT use an arrow function, because we need to bind "this"
 UserSchema.pre('save', async function (next) {

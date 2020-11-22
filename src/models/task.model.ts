@@ -10,16 +10,17 @@ const taskSchema = new Schema({
     type: Boolean,
     default: false,
   },
-  userId: {
+  user: {
     type: Schema.Types.ObjectId,
     required: true,
+    ref: 'User',
   },
 });
 
 export interface ITaskDocument extends Document {
   description: string;
   completed: boolean;
-  userId: string;
+  user: string;
 }
 
 interface ITaskModel extends Model<ITaskDocument> {}
