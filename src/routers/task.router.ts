@@ -4,7 +4,11 @@ import { Task } from '../models/task.model';
 export const TaskRouter = Router();
 
 TaskRouter.post('/tasks', async (req, res) => {
-  const task = new Task(req.body);
+  const task = new Task({
+    ...req.body,
+    userId: req.user._id,
+  });
+
   try {
     await task.save();
     res.status(201).send(task);

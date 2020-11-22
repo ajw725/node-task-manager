@@ -5,7 +5,10 @@ const express_1 = require("express");
 const task_model_1 = require("../models/task.model");
 exports.TaskRouter = express_1.Router();
 exports.TaskRouter.post('/tasks', async (req, res) => {
-    const task = new task_model_1.Task(req.body);
+    const task = new task_model_1.Task({
+        ...req.body,
+        userId: req.user._id,
+    });
     try {
         await task.save();
         res.status(201).send(task);

@@ -1,6 +1,6 @@
-import Mongoose from 'mongoose';
+import { Schema, model, Document, Model } from 'mongoose';
 
-const taskSchema = new Mongoose.Schema({
+const taskSchema = new Schema({
   description: {
     type: String,
     required: [true, 'You must provide a task description'],
@@ -10,6 +10,18 @@ const taskSchema = new Mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  userId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+  },
 });
 
-export const Task = Mongoose.model('Task', taskSchema);
+export interface ITaskDocument extends Document {
+  description: string;
+  completed: boolean;
+  userId: string;
+}
+
+interface ITaskModel extends Model<ITaskDocument> {}
+
+export const Task = model<ITaskDocument, ITaskModel>('Task', taskSchema);
