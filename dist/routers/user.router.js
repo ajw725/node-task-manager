@@ -52,11 +52,13 @@ exports.UserRouter.patch('/users/:id', async (req, res) => {
         res.status(400).send({ error: 'Invalid field provided for update' });
     }
     try {
-        const user = await user_model_1.User.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
-        });
+        // TODO: figure out how to make this typescript-friendly
+        const user = user_model_1.User.findById(req.params.id);
         if (user) {
+            givenFields.forEach((field) => {
+                user[field] = req.body[field];
+            });
+            await user.save();
             res.status(200).send(user);
         }
         else {
