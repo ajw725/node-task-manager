@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { Schema, Document, model, Model } from 'mongoose';
 import validator from 'validator';
 import { hash, genSalt, compare } from 'bcrypt';
@@ -53,6 +54,13 @@ export interface UserTokenPayload {
   _id: string;
 }
 
+export interface PublicProfile {
+  _id: string;
+  name: string;
+  email: string;
+  age?: number;
+}
+
 UserSchema.methods.generateAuthToken = async function (save = true) {
   const user = this;
   const payload: UserTokenPayload = { _id: user._id.toString() };
@@ -77,6 +85,10 @@ UserSchema.statics.findByCredentials = async (
   const passwordMatch = await compare(password, user.password);
 
   return passwordMatch ? user : null;
+};
+
+UserSchema.methods.toJSON = function (): PublicProfile {
+  return _.pick(this.toObject(), '_id', 'name', 'email', 'age');
 };
 
 interface UserToken {

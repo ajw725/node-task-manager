@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
+const lodash_1 = __importDefault(require("lodash"));
 const mongoose_1 = require("mongoose");
 const validator_1 = __importDefault(require("validator"));
 const bcrypt_1 = require("bcrypt");
@@ -70,6 +71,9 @@ UserSchema.statics.findByCredentials = async (email, password) => {
         return null;
     const passwordMatch = await bcrypt_1.compare(password, user.password);
     return passwordMatch ? user : null;
+};
+UserSchema.methods.toJSON = function () {
+    return lodash_1.default.pick(this.toObject(), '_id', 'name', 'email', 'age');
 };
 // CANNOT use an arrow function, because we need to bind "this"
 UserSchema.pre('save', async function (next) {
