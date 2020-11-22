@@ -106,8 +106,6 @@ export interface IUserDocument extends Document {
   generateAuthToken(save?: boolean): Promise<String>;
 }
 
-export type UserField = 'name' | 'email' | 'password' | 'age';
-
 interface IUserModel extends Model<IUserDocument> {
   findByCredentials(email: string, password: string): Promise<IUserDocument>;
 }

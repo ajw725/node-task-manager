@@ -52,7 +52,7 @@ exports.UserRouter.delete('/logout', async (req, res) => {
 exports.UserRouter.get('/users/me', async (req, res) => {
     res.status(200).send(req.user);
 });
-exports.UserRouter.get('/users/:id', async (req, res) => {
+exports.UserRouter.get('/users/me', async (req, res) => {
     try {
         const user = await user_model_1.User.findById(req.params.id);
         if (user) {
@@ -68,7 +68,7 @@ exports.UserRouter.get('/users/:id', async (req, res) => {
         res.status(500).send({ error: err });
     }
 });
-exports.UserRouter.patch('/users/:id', async (req, res) => {
+exports.UserRouter.patch('/users/me', async (req, res) => {
     const givenFields = Object.keys(req.body);
     const allowedFields = ['name', 'email', 'password', 'age'];
     if (givenFields.length === 0) {
@@ -82,35 +82,21 @@ exports.UserRouter.patch('/users/:id', async (req, res) => {
     }
     try {
         // TODO: figure out how to make this typescript-friendly
-        const user = user_model_1.User.findById(req.params.id);
-        if (user) {
-            givenFields.forEach((field) => {
-                user[field] = req.body[field];
-            });
-            await user.save();
-            res.status(200).send(user);
-        }
-        else {
-            res
-                .status(404)
-                .send({ error: `User with id ${req.params.id} not found` });
-        }
+        const user = req.user;
+        givenFields.forEach((field) => {
+            user[field] = req.body[field];
+        });
+        await user.save();
+        res.status(200).send(user);
     }
     catch (err) {
         res.status(500).send({ error: err });
     }
 });
-exports.UserRouter.delete('/users/:id', async (req, res) => {
+exports.UserRouter.delete('/users/me', async (req, res) => {
     try {
-        const user = await user_model_1.User.findByIdAndDelete(req.params.id);
-        if (user) {
-            res.status(200).send({ message: 'User deleted.' });
-        }
-        else {
-            res
-                .status(404)
-                .send({ error: `User with id ${req.params.id} not found.` });
-        }
+        await req.user.remove();
+        res.status(200).send({ message: 'Profile deleted.' });
     }
     catch (err) {
         res.status(500).send({ error: err });
