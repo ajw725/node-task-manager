@@ -35,10 +35,16 @@ UserRouter.delete('/logout', async (req, res) => {
   try {
     const thisToken = req.token;
     const user = req.user;
-    user.tokens = user.tokens.filter((t) => t.token !== thisToken);
+    const removeAll = req.query.all;
+    user.tokens = removeAll
+      ? []
+      : user.tokens.filter((t) => t.token !== thisToken);
     await user.save();
 
-    res.status(200).send({ message: 'Logged out successfully.' });
+    const msg = `Logged out${
+      removeAll ? ' from all sessions' : ''
+    } successfully`;
+    res.status(200).send({ message: msg });
   } catch (err) {
     console.error('logout error:', err);
     res.status(500).send({ error: err });
