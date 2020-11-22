@@ -52,11 +52,13 @@ TaskRouter.patch('/tasks/:id', async (req, res) => {
   }
 
   try {
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const task: any = await Task.findById(req.params.id);
     if (task) {
+      givenFields.forEach((field) => {
+        task[field] = req.body[field];
+      });
+      await task.save();
+
       res.status(200).send(task);
     } else {
       res

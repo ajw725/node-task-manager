@@ -52,11 +52,12 @@ exports.TaskRouter.patch('/tasks/:id', async (req, res) => {
         res.status(400).send({ error: 'Invalid field provided for update' });
     }
     try {
-        const task = await task_model_1.Task.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
-        });
+        const task = await task_model_1.Task.findById(req.params.id);
         if (task) {
+            givenFields.forEach((field) => {
+                task[field] = req.body[field];
+            });
+            await task.save();
             res.status(200).send(task);
         }
         else {
