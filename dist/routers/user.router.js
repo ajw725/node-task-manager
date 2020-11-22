@@ -32,14 +32,8 @@ exports.UserRouter.post('/login', async (req, res) => {
         res.status(500).send({ error: err });
     }
 });
-exports.UserRouter.get('/users', async (_req, res) => {
-    try {
-        const users = await user_model_1.User.find();
-        res.status(200).send(users);
-    }
-    catch (err) {
-        res.status(500).send({ error: err });
-    }
+exports.UserRouter.get('/users/me', async (req, res) => {
+    res.status(200).send(req.user);
 });
 exports.UserRouter.get('/users/:id', async (req, res) => {
     try {

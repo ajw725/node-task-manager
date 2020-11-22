@@ -49,9 +49,13 @@ const UserSchema: Schema = new Schema({
   ],
 });
 
+export interface UserTokenPayload {
+  _id: string;
+}
+
 UserSchema.methods.generateAuthToken = async function (save = true) {
   const user = this;
-  const payload = { _id: user._id.toString() };
+  const payload: UserTokenPayload = { _id: user._id.toString() };
   const secret = process.env.JWT_SECRET || '';
   const token = signToken(payload, secret);
 
@@ -79,7 +83,7 @@ interface UserToken {
   token: string;
 }
 
-interface IUserDocument extends Document {
+export interface IUserDocument extends Document {
   name: string;
   email: string;
   password: string;

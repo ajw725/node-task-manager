@@ -31,13 +31,8 @@ UserRouter.post('/login', async (req, res) => {
   }
 });
 
-UserRouter.get('/users', async (_req, res) => {
-  try {
-    const users = await User.find();
-    res.status(200).send(users);
-  } catch (err) {
-    res.status(500).send({ error: err });
-  }
+UserRouter.get('/users/me', async (req, res) => {
+  res.status(200).send(req.user);
 });
 
 UserRouter.get('/users/:id', async (req, res) => {
