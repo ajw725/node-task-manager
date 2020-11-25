@@ -17,14 +17,42 @@ TaskRouter.post('/tasks', async (req, res) => {
   }
 });
 
+/*
+ * query params:
+ *  completed: boolean - task status filter
+ *  limit: number - query limit
+ *  skip: number - query offset
+ *  sortBy: string - field name on which to sort results
+ *  sortDir: 'asc' | 'desc' - sort direction
+ */
 TaskRouter.get('/tasks', async (req, res) => {
   try {
-    const findOpts: any = { user: req.user._id };
+    const match: any = {};
     if (req.query.completed !== undefined) {
-      findOpts.completed = req.query.completed;
+      match.completed = req.query.completed;
     }
-    const tasks = await Task.find(findOpts);
-    res.status(200).send(tasks);
+
+    const options: any = {};
+    if (req.query.limit) {
+      options.limit = parseInt(req.query.limit as string);
+    }
+    if (req.query.skip) {
+      options.skip = parseInt(req.query.skip as string);
+    }
+    if (req.query.sortBy) {
+      const sortDir = req.query.sortDir && req.query.sortDir === 'desc' ? -1 : 1;
+      options.sort = { [req.query.sortBy as string]: sortDir };
+    }
+
+    const user = req.user;
+    await user
+      .populate({
+        path: 'tasks',
+        match,
+        options,
+      })
+      .execPopulate();
+    res.status(200).send(user.tasks);
   } catch (err) {
     res.status(500).send(err);
   }

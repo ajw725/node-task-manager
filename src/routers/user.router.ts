@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
+import multer from 'multer';
 import { User } from '../models/user.model';
 
 export const UserRouter = Router();
@@ -105,4 +106,24 @@ UserRouter.delete('/users/me', async (req, res) => {
   } catch (err) {
     res.status(500).send({ error: err });
   }
+});
+
+const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+const uploader = multer({
+  dest: 'avatars',
+  limits: {
+    fileSize: 1048576
+  },
+  fileFilter: (_req, file, cb) => {
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Invalid file type. Please upload a JPG or PNG image'));
+    }
+
+    cb(null, true);
+  }
+});
+UserRouter.post('/users/me/avatar', uploader.single('avatar'), async (_req: Request, res: Response) => {
+  res.status(201).send({ message: 'Avatar uploaded' });
+}, (err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  res.status(400).json({ error: err.message });
 });

@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserRouter = void 0;
 const express_1 = require("express");
+const multer_1 = __importDefault(require("multer"));
 const user_model_1 = require("../models/user.model");
 exports.UserRouter = express_1.Router();
 exports.UserRouter.post('/users', async (req, res) => {
@@ -101,4 +105,22 @@ exports.UserRouter.delete('/users/me', async (req, res) => {
     catch (err) {
         res.status(500).send({ error: err });
     }
+});
+const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+const uploader = multer_1.default({
+    dest: 'avatars',
+    limits: {
+        fileSize: 1048576
+    },
+    fileFilter: (_req, file, cb) => {
+        if (!allowedTypes.includes(file.mimetype)) {
+            return cb(new Error('Invalid file type. Please upload a JPG or PNG image'));
+        }
+        cb(null, true);
+    }
+});
+exports.UserRouter.post('/users/me/avatar', uploader.single('avatar'), async (_req, res) => {
+    res.status(201).send({ message: 'Avatar uploaded' });
+}, (err, _req, res, _next) => {
+    res.status(400).json({ error: err.message });
 });

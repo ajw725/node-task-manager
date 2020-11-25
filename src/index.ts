@@ -1,6 +1,7 @@
 import Express from 'express';
 require('./db/mongoose');
 import dotenv from 'dotenv';
+import multer from 'multer';
 import { authorizer } from './middleware/authorizer';
 import { UserRouter } from './routers/user.router';
 import { TaskRouter } from './routers/task.router';

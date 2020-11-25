@@ -17,14 +17,40 @@ exports.TaskRouter.post('/tasks', async (req, res) => {
         res.status(400).send({ error: err });
     }
 });
+/*
+ * query params:
+ *  completed: boolean - task status filter
+ *  limit: number - query limit
+ *  skip: number - query offset
+ *  sortBy: string - field name on which to sort results
+ *  sortDir: 'asc' | 'desc' - sort direction
+ */
 exports.TaskRouter.get('/tasks', async (req, res) => {
     try {
-        const findOpts = { user: req.user._id };
+        const match = {};
         if (req.query.completed !== undefined) {
-            findOpts.completed = req.query.completed;
+            match.completed = req.query.completed;
         }
-        const tasks = await task_model_1.Task.find(findOpts);
-        res.status(200).send(tasks);
+        const options = {};
+        if (req.query.limit) {
+            options.limit = parseInt(req.query.limit);
+        }
+        if (req.query.skip) {
+            options.skip = parseInt(req.query.skip);
+        }
+        if (req.query.sortBy) {
+            const sortDir = req.query.sortDir && req.query.sortDir === 'desc' ? -1 : 1;
+            options.sort = { [req.query.sortBy]: sortDir };
+        }
+        const user = req.user;
+        await user
+            .populate({
+            path: 'tasks',
+            match,
+            options,
+        })
+            .execPopulate();
+        res.status(200).send(user.tasks);
     }
     catch (err) {
         res.status(500).send(err);
