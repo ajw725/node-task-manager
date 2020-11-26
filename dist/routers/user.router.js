@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserRouter = void 0;
 const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
+const sharp_1 = __importDefault(require("sharp"));
 const user_model_1 = require("../models/user.model");
 exports.UserRouter = express_1.Router();
 exports.UserRouter.post('/users', async (req, res) => {
@@ -119,8 +120,12 @@ const uploader = multer_1.default({
     }
 });
 exports.UserRouter.post('/users/me/avatar', uploader.single('avatar'), async (req, res) => {
+    const buf = await sharp_1.default(req.file.buffer)
+        .resize({ width: 250, height: 250 })
+        .png()
+        .toBuffer();
     const user = req.user;
-    user.avatar = req.file.buffer;
+    user.avatar = buf;
     await user.save();
     res.status(200).send({ message: 'Avatar uploaded' });
 }, (err, _req, res, _next) => {

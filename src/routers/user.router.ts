@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import multer from 'multer';
+import sharp from 'sharp';
 import { User } from '../models/user.model';
 
 export const UserRouter = Router();
@@ -35,7 +36,7 @@ UserRouter.post('/login', async (req, res) => {
 UserRouter.delete('/logout', async (req, res) => {
   try {
     const thisToken = req.token;
-    const user = req.user;
+    const { user } = req;
     const removeAll = req.query.all;
     user.tokens = removeAll
       ? []
@@ -87,7 +88,7 @@ UserRouter.patch('/users/me', async (req, res) => {
 
   try {
     // TODO: figure out how to make this typescript-friendly
-    const user: any = req.user;
+    const { user } = req;
     givenFields.forEach((field) => {
       user[field] = req.body[field];
     });
@@ -111,30 +112,41 @@ UserRouter.delete('/users/me', async (req, res) => {
 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
 const uploader = multer({
   limits: {
-    fileSize: 1048576
+    fileSize: 1048576,
   },
   fileFilter: (_req, file, cb) => {
     if (!allowedTypes.includes(file.mimetype)) {
-      return cb(new Error('Invalid file type. Please upload a JPG or PNG image'));
+      return cb(
+        new Error('Invalid file type. Please upload a JPG or PNG image')
+      );
     }
 
     cb(null, true);
+  },
+});
+
+UserRouter.post(
+  '/users/me/avatar',
+  uploader.single('avatar'),
+  async (req: Request, res: Response) => {
+    const buf = await sharp(req.file.buffer)
+      .resize({ width: 250, height: 250 })
+      .png()
+      .toBuffer();
+    const { user } = req;
+    user.avatar = buf;
+    await user.save();
+
+    res.status(200).send({ message: 'Avatar uploaded' });
+  },
+  (err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    res.status(400).json({ error: err.message });
   }
-});
-
-UserRouter.post('/users/me/avatar', uploader.single('avatar'), async (req: Request, res: Response) => {
-  const user = req.user;
-  user.avatar = req.file.buffer;
-  await user.save();
-
-  res.status(200).send({ message: 'Avatar uploaded' });
-}, (err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  res.status(400).json({ error: err.message });
-});
+);
 
 UserRouter.delete('/users/me/avatar', async (req, res) => {
   try {
-    const user = req.user;
+    const { user } = req;
     user.avatar = undefined;
     await user.save();
 
@@ -152,7 +164,7 @@ UserRouter.get('/users/:id/avatar', async (req, res) => {
       throw new Error();
     }
 
-    res.set('Content-Type', 'image/jpg').send(user.avatar);
+    res.set('Content-Type', 'image/png').send(user.avatar);
   } catch (err) {
     res.status(404).json({ message: 'Image not found.' });
   }

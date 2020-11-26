@@ -51,8 +51,8 @@ const UserSchema: Schema = new Schema(
       },
     ],
     avatar: {
-      type: Buffer
-    }
+      type: Buffer,
+    },
   },
   {
     timestamps: true,
@@ -102,18 +102,6 @@ UserSchema.methods.toJSON = function (): PublicProfile {
     'createdAt',
     'updatedAt'
   );
-};
-
-UserSchema.statics.findByCredentials = async (
-  email: string,
-  password: string
-) => {
-  const user = await User.findOne({ email: email });
-  if (!user) return null;
-
-  const passwordMatch = await compare(password, user.password);
-
-  return passwordMatch ? user : null;
 };
 
 interface UserToken {
@@ -167,3 +155,15 @@ UserSchema.pre('remove', async function (next) {
 });
 
 export const User = model<IUserDocument, IUserModel>('User', UserSchema);
+
+UserSchema.statics.findByCredentials = async (
+  email: string,
+  password: string
+) => {
+  const user = await User.findOne({ email });
+  if (!user) return null;
+
+  const passwordMatch = await compare(password, user.password);
+
+  return passwordMatch ? user : null;
+};
