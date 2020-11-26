@@ -88,7 +88,7 @@ UserRouter.patch('/users/me', async (req, res) => {
 
   try {
     // TODO: figure out how to make this typescript-friendly
-    const { user } = req;
+    const { user }: any = req;
     givenFields.forEach((field) => {
       user[field] = req.body[field];
     });

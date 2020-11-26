@@ -55,8 +55,8 @@ const UserSchema = new mongoose_1.Schema({
         },
     ],
     avatar: {
-        type: Buffer
-    }
+        type: Buffer,
+    },
 }, {
     timestamps: true,
 });
@@ -78,13 +78,6 @@ UserSchema.methods.generateAuthToken = async function (save = true) {
 };
 UserSchema.methods.toJSON = function () {
     return lodash_1.default.pick(this.toObject(), '_id', 'name', 'email', 'age', 'createdAt', 'updatedAt');
-};
-UserSchema.statics.findByCredentials = async (email, password) => {
-    const user = await exports.User.findOne({ email: email });
-    if (!user)
-        return null;
-    const passwordMatch = await bcrypt_1.compare(password, user.password);
-    return passwordMatch ? user : null;
 };
 // hash password before save
 // CANNOT use an arrow function, because we need to bind "this"
@@ -109,3 +102,10 @@ UserSchema.pre('remove', async function (next) {
     next();
 });
 exports.User = mongoose_1.model('User', UserSchema);
+UserSchema.statics.findByCredentials = async (email, password) => {
+    const user = await exports.User.findOne({ email });
+    if (!user)
+        return null;
+    const passwordMatch = await bcrypt_1.compare(password, user.password);
+    return passwordMatch ? user : null;
+};
