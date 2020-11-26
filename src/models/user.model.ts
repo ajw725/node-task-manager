@@ -50,6 +50,9 @@ const UserSchema: Schema = new Schema(
         },
       },
     ],
+    avatar: {
+      type: Buffer
+    }
   },
   {
     timestamps: true,
@@ -124,6 +127,7 @@ export interface IUserDocument extends Document {
   salt: string;
   age?: number;
   tokens: UserToken[];
+  avatar?: Buffer;
   tasks: ITaskDocument[];
   createdAt: string;
   updatedAt: string;

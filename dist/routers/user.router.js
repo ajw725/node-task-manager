@@ -108,7 +108,6 @@ exports.UserRouter.delete('/users/me', async (req, res) => {
 });
 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
 const uploader = multer_1.default({
-    dest: 'avatars',
     limits: {
         fileSize: 1048576
     },
@@ -119,8 +118,34 @@ const uploader = multer_1.default({
         cb(null, true);
     }
 });
-exports.UserRouter.post('/users/me/avatar', uploader.single('avatar'), async (_req, res) => {
-    res.status(201).send({ message: 'Avatar uploaded' });
+exports.UserRouter.post('/users/me/avatar', uploader.single('avatar'), async (req, res) => {
+    const user = req.user;
+    user.avatar = req.file.buffer;
+    await user.save();
+    res.status(200).send({ message: 'Avatar uploaded' });
 }, (err, _req, res, _next) => {
     res.status(400).json({ error: err.message });
+});
+exports.UserRouter.delete('/users/me/avatar', async (req, res) => {
+    try {
+        const user = req.user;
+        user.avatar = undefined;
+        await user.save();
+        res.status(200).json({ message: 'Avatar image removed.' });
+    }
+    catch (err) {
+        res.status(500).send({ error: err });
+    }
+});
+exports.UserRouter.get('/users/:id/avatar', async (req, res) => {
+    try {
+        const user = await user_model_1.User.findById(req.params.id);
+        if (!user || !user.avatar) {
+            throw new Error();
+        }
+        res.set('Content-Type', 'image/jpg').send(user.avatar);
+    }
+    catch (err) {
+        res.status(404).json({ message: 'Image not found.' });
+    }
 });

@@ -17,7 +17,8 @@ const validateToken = async (token) => {
 };
 exports.authorizer = async (req, res, next) => {
     const { method, path } = req;
-    const skipAuth = method === 'POST' && (path === '/login' || path === '/users');
+    const skipAuth = (method === 'POST' && (path === '/login' || path === '/users')) ||
+        (method === 'GET' && path.endsWith('avatar'));
     if (skipAuth) {
         return next();
     }
