@@ -104,6 +104,18 @@ UserSchema.methods.toJSON = function (): PublicProfile {
   );
 };
 
+UserSchema.statics.findByCredentials = async function (
+  email: string,
+  password: string
+) {
+  const user = await this.findOne({ email });
+  if (!user) return null;
+
+  const passwordMatch = await compare(password, user.password);
+
+  return passwordMatch ? user : null;
+};
+
 interface UserToken {
   token: string;
 }
@@ -155,15 +167,3 @@ UserSchema.pre('remove', async function (next) {
 });
 
 export const User = model<IUserDocument, IUserModel>('User', UserSchema);
-
-UserSchema.statics.findByCredentials = async (
-  email: string,
-  password: string
-) => {
-  const user = await User.findOne({ email });
-  if (!user) return null;
-
-  const passwordMatch = await compare(password, user.password);
-
-  return passwordMatch ? user : null;
-};
