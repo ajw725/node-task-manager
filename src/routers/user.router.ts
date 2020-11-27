@@ -2,7 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import multer from 'multer';
 import sharp from 'sharp';
 import { User } from '../models/user.model';
-import { sendWelcomeEmail } from '../emails/account';
+import { sendWelcomeEmail, sendGoodbyeEmail } from '../emails/account';
 
 export const UserRouter = Router();
 
@@ -105,7 +105,10 @@ UserRouter.patch('/users/me', async (req, res) => {
 
 UserRouter.delete('/users/me', async (req, res) => {
   try {
-    await req.user.remove();
+    const { user } = req;
+    await user.remove();
+    sendGoodbyeEmail(user.email, user.name);
+
     res.status(200).send({ message: 'Profile deleted.' });
   } catch (err) {
     res.status(500).send({ error: err });

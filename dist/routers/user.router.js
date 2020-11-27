@@ -102,7 +102,9 @@ exports.UserRouter.patch('/users/me', async (req, res) => {
 });
 exports.UserRouter.delete('/users/me', async (req, res) => {
     try {
-        await req.user.remove();
+        const { user } = req;
+        await user.remove();
+        account_1.sendGoodbyeEmail(user.email, user.name);
         res.status(200).send({ message: 'Profile deleted.' });
     }
     catch (err) {
