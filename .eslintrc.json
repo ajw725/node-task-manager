@@ -2,7 +2,7 @@
   "root": true,
   "extends": ["airbnb-typescript/base", "plugin:prettier/recommended"],
   "parserOptions": {
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.test.json"
   },
   "rules": {
     "no-debugger": 0,

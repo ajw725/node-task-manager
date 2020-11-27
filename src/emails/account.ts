@@ -1,4 +1,5 @@
 import sgMail from '@sendgrid/mail';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { ResponseError } from '@sendgrid/helpers/classes';
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);

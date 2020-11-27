@@ -40,11 +40,12 @@ TaskRouter.get('/tasks', async (req, res) => {
       options.skip = parseInt(req.query.skip as string);
     }
     if (req.query.sortBy) {
-      const sortDir = req.query.sortDir && req.query.sortDir === 'desc' ? -1 : 1;
+      const sortDir =
+        req.query.sortDir && req.query.sortDir === 'desc' ? -1 : 1;
       options.sort = { [req.query.sortBy as string]: sortDir };
     }
 
-    const user = req.user;
+    const { user } = req;
     await user
       .populate({
         path: 'tasks',
