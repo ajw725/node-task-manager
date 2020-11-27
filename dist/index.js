@@ -4,12 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-require('./db/mongoose');
-const dotenv_1 = __importDefault(require("dotenv"));
 const authorizer_1 = require("./middleware/authorizer");
 const user_router_1 = require("./routers/user.router");
 const task_router_1 = require("./routers/task.router");
-dotenv_1.default.config();
+require('./db/mongoose');
 const app = express_1.default();
 const port = parseInt(process.env.PORT || '3000');
 app.use(authorizer_1.authorizer);

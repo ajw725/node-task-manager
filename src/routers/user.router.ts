@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import multer from 'multer';
 import sharp from 'sharp';
 import { User } from '../models/user.model';
+import { sendWelcomeEmail } from '../emails/account';
 
 export const UserRouter = Router();
 
@@ -10,6 +11,8 @@ UserRouter.post('/users', async (req, res) => {
   try {
     const token = await user.generateAuthToken(false);
     await user.save();
+    sendWelcomeEmail(user.email, user.name);
+
     res.status(201).send({ user, token });
   } catch (err) {
     res.status(400).send({ error: err });

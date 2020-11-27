@@ -8,12 +8,14 @@ const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
 const sharp_1 = __importDefault(require("sharp"));
 const user_model_1 = require("../models/user.model");
+const account_1 = require("../emails/account");
 exports.UserRouter = express_1.Router();
 exports.UserRouter.post('/users', async (req, res) => {
     const user = new user_model_1.User(req.body);
     try {
         const token = await user.generateAuthToken(false);
         await user.save();
+        account_1.sendWelcomeEmail(user.email, user.name);
         res.status(201).send({ user, token });
     }
     catch (err) {
