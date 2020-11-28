@@ -2,7 +2,12 @@ import request from 'supertest';
 import { send } from '../__mocks__/@sendgrid/mail';
 import app from '../src/app';
 import { User } from '../src/models/user.model';
-import { newUser, userOneId, userOneToken, saveUser } from '../__fixtures__/db';
+import {
+  userOne,
+  userOneId,
+  userOneToken,
+  saveUsers,
+} from '../__fixtures__/db';
 
 describe('POST /users', () => {
   beforeEach(async () => {
@@ -11,18 +16,18 @@ describe('POST /users', () => {
   });
 
   it('should create a new user', async () => {
-    const resp = await request(app).post('/users').send(newUser).expect(201);
+    const resp = await request(app).post('/users').send(userOne).expect(201);
     const user = await User.findById(resp.body.user._id);
     expect(user).not.toBeNull();
   });
 
   it('should send an email', async () => {
-    await request(app).post('/users').send(newUser);
+    await request(app).post('/users').send(userOne);
     expect(send).toHaveBeenCalledTimes(1);
   });
 
   it('should error on duplicate email', async () => {
-    await saveUser();
+    await saveUsers();
 
     const user2 = {
       name: 'User Two',
@@ -39,15 +44,15 @@ describe('POST /login', () => {
   });
 
   describe('for existing user', () => {
-    beforeEach(saveUser);
+    beforeEach(saveUsers);
 
     it('should log in with correct creds', async () => {
-      const { email, password } = newUser;
+      const { email, password } = userOne;
       await request(app).post('/login').send({ email, password }).expect(200);
     });
 
     it('should save and return new token', async () => {
-      const { email, password } = newUser;
+      const { email, password } = userOne;
       const resp = await request(app).post('/login').send({ email, password });
       const returnedToken = resp.body.token;
       const user = await User.findById(userOneId);
@@ -59,7 +64,7 @@ describe('POST /login', () => {
         .post('/login')
         .send({
           email: 'wrong@example.com',
-          password: newUser.password,
+          password: userOne.password,
         })
         .expect(401);
     });
@@ -68,7 +73,7 @@ describe('POST /login', () => {
       await request(app)
         .post('/login')
         .send({
-          email: newUser.email,
+          email: userOne.email,
           password: 'wrongpassword',
         })
         .expect(401);
@@ -77,7 +82,7 @@ describe('POST /login', () => {
 
   describe('without existing user', () => {
     it('should return 401', async () => {
-      const { email, password } = newUser;
+      const { email, password } = userOne;
       await request(app).post('/login').send({ email, password }).expect(401);
     });
   });
@@ -89,7 +94,7 @@ describe('GET /users/me', () => {
   });
 
   describe('with existing user', () => {
-    beforeEach(saveUser);
+    beforeEach(saveUsers);
 
     it('should return profile if authenticated', async () => {
       await request(app)
@@ -121,7 +126,7 @@ describe('DELETE /users/me', () => {
   });
 
   describe('with existing user', () => {
-    beforeEach(saveUser);
+    beforeEach(saveUsers);
 
     it('should remove user if authenticated', async () => {
       await request(app)
@@ -151,7 +156,7 @@ describe('POST /users/me/avatar', () => {
   });
 
   describe('with existing user', () => {
-    beforeEach(saveUser);
+    beforeEach(saveUsers);
 
     it('should save avatar if authenticated', async () => {
       await request(app)
@@ -172,7 +177,7 @@ describe('PATCH /users/me', () => {
   });
 
   describe('with existing user', () => {
-    beforeEach(saveUser);
+    beforeEach(saveUsers);
 
     it('should update name if authenticated', async () => {
       await request(app)
