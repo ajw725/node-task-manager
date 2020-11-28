@@ -165,3 +165,66 @@ describe('DELETE /users/me', () => {
     });
   });
 });
+
+describe('POST /users/me/avatar', () => {
+  beforeEach(async () => {
+    await User.deleteMany({});
+  });
+
+  describe('with existing user', () => {
+    beforeEach(async () => {
+      const user = new User(newUser);
+      await user.save();
+    });
+
+    it('should save avatar if authenticated', async () => {
+      await request(app)
+        .post('/users/me/avatar')
+        .set('Authorization', `Bearer ${userOneToken}`)
+        .attach('avatar', '__fixtures__/profile-pic.jpg')
+        .expect(200);
+
+      const user = await User.findById(userOneId);
+      expect(user.avatar).toEqual(expect.any(Buffer));
+    });
+  });
+});
+
+describe('PATCH /users/me', () => {
+  beforeEach(async () => {
+    await User.deleteMany({});
+  });
+
+  describe('with existing user', () => {
+    beforeEach(async () => {
+      const user = new User(newUser);
+      await user.save();
+    });
+
+    it('should update name if authenticated', async () => {
+      await request(app)
+        .patch('/users/me')
+        .set('Authorization', `Bearer ${userOneToken}`)
+        .send({ name: 'new name' })
+        .expect(200);
+
+      const user = await User.findById(userOneId);
+      expect(user.name).toEqual('new name');
+    });
+
+    it('should fail if not authenticated', async () => {
+      await request(app)
+        .patch('/users/me')
+        .send({ name: 'new name' })
+        .expect(401);
+    });
+
+    it('should fail for invalid field', async () => {
+      await request(app)
+        .patch('/users/me')
+        .set('Authorization', `Bearer ${userOneToken}`)
+        .send({ badfield: 'new name' })
+        .expect(400);
+    });
+  });
+});
