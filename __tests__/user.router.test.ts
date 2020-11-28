@@ -22,7 +22,9 @@ describe('POST /users', () => {
   });
 
   it('should create a new user', async () => {
-    await request(app).post('/users').send(newUser).expect(201);
+    const resp = await request(app).post('/users').send(newUser).expect(201);
+    const user = await User.findById(resp.body.user._id);
+    expect(user).not.toBeNull();
   });
 
   it('should send an email', async () => {
@@ -57,6 +59,14 @@ describe('POST /login', () => {
     it('should log in with correct creds', async () => {
       const { email, password } = newUser;
       await request(app).post('/login').send({ email, password }).expect(200);
+    });
+
+    it('should save and return new token', async () => {
+      const { email, password } = newUser;
+      const resp = await request(app).post('/login').send({ email, password });
+      const returnedToken = resp.body.token;
+      const user = await User.findById(userOneId);
+      expect(returnedToken).toEqual(user.tokens[1].token);
     });
 
     it('should return 401 with wrong email', async () => {
@@ -140,6 +150,8 @@ describe('DELETE /users/me', () => {
         .set('Authorization', `Bearer ${userOneToken}`)
         .send()
         .expect(200);
+      const user = await User.findById(userOneId);
+      expect(user).toBeNull();
     });
 
     it('should return 401 if not authenticated', async () => {
