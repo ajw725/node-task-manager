@@ -1,19 +1,8 @@
 import request from 'supertest';
-import jwt from 'jsonwebtoken';
-import { Types } from 'mongoose';
 import { send } from '../__mocks__/@sendgrid/mail';
 import app from '../src/app';
 import { User } from '../src/models/user.model';
-
-const userOneId = new Types.ObjectId();
-const userOneToken = jwt.sign({ _id: userOneId }, process.env.JWT_SECRET);
-const newUser = {
-  _id: userOneId,
-  name: 'Test User',
-  email: 'test@example.com',
-  password: 'Test123!',
-  tokens: [{ token: userOneToken }],
-};
+import { newUser, userOneId, userOneToken, saveUser } from '../__fixtures__/db';
 
 describe('POST /users', () => {
   beforeEach(async () => {
@@ -33,8 +22,7 @@ describe('POST /users', () => {
   });
 
   it('should error on duplicate email', async () => {
-    const user = new User(newUser);
-    await user.save();
+    await saveUser();
 
     const user2 = {
       name: 'User Two',
@@ -51,10 +39,7 @@ describe('POST /login', () => {
   });
 
   describe('for existing user', () => {
-    beforeEach(async () => {
-      const user = new User(newUser);
-      await user.save();
-    });
+    beforeEach(saveUser);
 
     it('should log in with correct creds', async () => {
       const { email, password } = newUser;
@@ -66,7 +51,7 @@ describe('POST /login', () => {
       const resp = await request(app).post('/login').send({ email, password });
       const returnedToken = resp.body.token;
       const user = await User.findById(userOneId);
-      expect(returnedToken).toEqual(user.tokens[1].token);
+      expect(returnedToken).toEqual(user!.tokens[1].token);
     });
 
     it('should return 401 with wrong email', async () => {
@@ -104,10 +89,7 @@ describe('GET /users/me', () => {
   });
 
   describe('with existing user', () => {
-    beforeEach(async () => {
-      const user = new User(newUser);
-      await user.save();
-    });
+    beforeEach(saveUser);
 
     it('should return profile if authenticated', async () => {
       await request(app)
@@ -139,10 +121,7 @@ describe('DELETE /users/me', () => {
   });
 
   describe('with existing user', () => {
-    beforeEach(async () => {
-      const user = new User(newUser);
-      await user.save();
-    });
+    beforeEach(saveUser);
 
     it('should remove user if authenticated', async () => {
       await request(app)
@@ -172,10 +151,7 @@ describe('POST /users/me/avatar', () => {
   });
 
   describe('with existing user', () => {
-    beforeEach(async () => {
-      const user = new User(newUser);
-      await user.save();
-    });
+    beforeEach(saveUser);
 
     it('should save avatar if authenticated', async () => {
       await request(app)
@@ -185,7 +161,7 @@ describe('POST /users/me/avatar', () => {
         .expect(200);
 
       const user = await User.findById(userOneId);
-      expect(user.avatar).toEqual(expect.any(Buffer));
+      expect(user!.avatar).toEqual(expect.any(Buffer));
     });
   });
 });
@@ -196,10 +172,7 @@ describe('PATCH /users/me', () => {
   });
 
   describe('with existing user', () => {
-    beforeEach(async () => {
-      const user = new User(newUser);
-      await user.save();
-    });
+    beforeEach(saveUser);
 
     it('should update name if authenticated', async () => {
       await request(app)
@@ -209,7 +182,7 @@ describe('PATCH /users/me', () => {
         .expect(200);
 
       const user = await User.findById(userOneId);
-      expect(user.name).toEqual('new name');
+      expect(user!.name).toEqual('new name');
     });
 
     it('should fail if not authenticated', async () => {
@@ -224,6 +197,14 @@ describe('PATCH /users/me', () => {
         .patch('/users/me')
         .set('Authorization', `Bearer ${userOneToken}`)
         .send({ badfield: 'new name' })
+        .expect(400);
+    });
+
+    it('should fail if no fields given', async () => {
+      await request(app)
+        .patch('/users/me')
+        .set('Authorization', `Bearer ${userOneToken}`)
+        .send()
         .expect(400);
     });
   });

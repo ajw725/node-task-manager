@@ -71,6 +71,6 @@
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
   "exclude": [
-    "__tests__", "__mocks__"
+    "__tests__", "__mocks__", "__fixtures__"
   ]
 }

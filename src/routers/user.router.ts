@@ -79,14 +79,14 @@ UserRouter.patch('/users/me', async (req, res) => {
   const givenFields = Object.keys(req.body);
   const allowedFields = ['name', 'email', 'password', 'age'];
   if (givenFields.length === 0) {
-    res
+    return res
       .status(400)
       .send({ error: 'You must provide at least one field to update.' });
   }
 
   const isValid = givenFields.every((f) => allowedFields.includes(f));
   if (!isValid) {
-    res.status(400).send({ error: 'Invalid field provided for update' });
+    return res.status(400).send({ error: 'Invalid field provided for update' });
   }
 
   try {
