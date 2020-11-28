@@ -1,20 +1,23 @@
 import request from 'supertest';
+import jwt from 'jsonwebtoken';
+import { Types } from 'mongoose';
 import { send } from '../__mocks__/@sendgrid/mail';
 import app from '../src/app';
 import { User } from '../src/models/user.model';
 
+const userOneId = new Types.ObjectId();
+const userOneToken = jwt.sign({ _id: userOneId }, process.env.JWT_SECRET);
 const newUser = {
+  _id: userOneId,
   name: 'Test User',
   email: 'test@example.com',
   password: 'Test123!',
+  tokens: [{ token: userOneToken }],
 };
 
 describe('POST /users', () => {
   beforeEach(async () => {
     await User.deleteMany({});
-  });
-
-  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -43,7 +46,6 @@ describe('POST /users', () => {
 describe('POST /login', () => {
   beforeEach(async () => {
     await User.deleteMany({});
-    jest.clearAllMocks();
   });
 
   describe('for existing user', () => {
@@ -82,6 +84,72 @@ describe('POST /login', () => {
     it('should return 401', async () => {
       const { email, password } = newUser;
       await request(app).post('/login').send({ email, password }).expect(401);
+    });
+  });
+});
+
+describe('GET /users/me', () => {
+  beforeEach(async () => {
+    await User.deleteMany({});
+  });
+
+  describe('with existing user', () => {
+    beforeEach(async () => {
+      const user = new User(newUser);
+      await user.save();
+    });
+
+    it('should return profile if authenticated', async () => {
+      await request(app)
+        .get('/users/me')
+        .set('Authorization', `Bearer ${userOneToken}`)
+        .send()
+        .expect(200);
+    });
+
+    it('should return 401 if not authenticated', async () => {
+      await request(app).get('/users/me').send().expect(401);
+    });
+  });
+
+  describe('without existing user', () => {
+    it('should return 401', async () => {
+      await request(app)
+        .get('/users/me')
+        .set('Authorization', `Bearer ${userOneToken}`)
+        .send()
+        .expect(401);
+    });
+  });
+});
+
+describe('DELETE /users/me', () => {
+  beforeEach(async () => {
+    await User.deleteMany({});
+  });
+
+  describe('with existing user', () => {
+    beforeEach(async () => {
+      const user = new User(newUser);
+      await user.save();
+    });
+
+    it('should remove user if authenticated', async () => {
+      await request(app)
+        .delete('/users/me')
+        .set('Authorization', `Bearer ${userOneToken}`)
+        .send()
+        .expect(200);
+    });
+
+    it('should return 401 if not authenticated', async () => {
+      await request(app).delete('/users/me').send().expect(401);
+    });
+  });
+
+  describe('without existing user', () => {
+    it('should return 401', async () => {
+      await request(app).delete('/users/me').send().expect(401);
     });
   });
 });
