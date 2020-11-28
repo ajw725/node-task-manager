@@ -68,11 +68,11 @@ describe('DELETE /tasks/:id', () => {
       .expect(200);
   });
 
-  it('should prevent deletion by another user', async () => {
+  it('should return 404 for task owned by another user', async () => {
     await request(app)
       .delete(`/tasks/${taskOne._id}`)
       .set('Authorization', `Bearer ${userTwoToken}`)
       .send()
-      .expect(401);
+      .expect(404);
   });
 });

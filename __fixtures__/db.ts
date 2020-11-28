@@ -29,6 +29,7 @@ export const userTwo = {
   name: 'User Two',
   email: 'test2@example.com',
   password: 'Test123!',
+  tokens: [{ token: userTwoToken }],
 };
 
 export const saveUsers = async () => {
